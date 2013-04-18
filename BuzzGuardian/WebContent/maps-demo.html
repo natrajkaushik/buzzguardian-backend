@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+    html, body, #map-canvas {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    </style>
+    <title>Google Maps JavaScript API v3 Example: Marker Simple</title>
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAmEvPWMafJFafvXGR-ampYOLQVSWmP5xM&sensor=false"></script>
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+    <script>
+    var lastUpdate = '0'; // You need to decide what the server should return
+    //  when you load the map the first time.
+
+    function autoUpdate() {
+      $.ajax({
+        type: "GET",
+        url: "/get_data?timestamp=" + lastUpdate,
+        dataType: 'json',
+        success: function(jsonData) {
+
+          // 1. Check if jsonData is empty. If empty skip to 4.
+          //    Else we received some fresh data.
+          //
+
+          if(!jQuery.isEmptyObject(jsonData)) {
+
+            // 2. Update lastUpdate from the jsonData with the timestamp from
+            //    the server. Don't use JavaScript to update the timestamp,
+            //    because the time on the client and on the server will
+            //    never be exactly in sync.
+            //
+
+            lastUpdate = jsonData.timestamp;
+
+            // 3. Add new markers on Google Map.
+            //
+
+            var locations = jsonData.locations;
+
+
+            $.each(locations, addMarker);
+
+          }
+          // 4. Relaunch the autoUpdate() function in 5 seconds.
+          setTimeout(autoUpdate, 5000);
+        }
+      });
+    }
+
+    var map;
+    var image;
+    function initialize() {
+      image = './static/crimescene.png';
+      var gatech = new google.maps.LatLng(33.77658,-84.38993)
+      var mapOptions = {
+        zoom: 15,
+        center: gatech,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      };
+      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+    }
+
+    // Function for adding a marker to the page.
+    function addMarker(index, raw_location) {
+      map.setZoom(10);
+      var location = new google.maps.LatLng(raw_location[0],raw_location[1]);
+      console.log(location)
+      marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        icon: image
+      });
+      map.setZoom(15); // Zoom in after 1 sec
+      map.panTo(location);
+    }
+
+
+    </script>
+  </head>
+  <body onload="initialize(); autoUpdate();">
+
+    <div id="map-canvas"></div>
+  </body>
+</html>
