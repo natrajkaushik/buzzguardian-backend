@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
     <meta charset="utf-8">
-    <title>Personal Security Bracelet - Sign Up</title>
+    <title>Buzz Guardian - Sign Up</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -50,13 +50,13 @@
 
     <div class="container">
 
-      <form class="form-signin">
-        <h2 class="form-signin-heading">Personal Security Bracelet Signup</h2>
-        <input type="text" class="input-block-level" placeholder="First Name">
-        <input type="text" class="input-block-level" placeholder="Last Name">
-        <input type="text" class="input-block-level" placeholder="GT Email Address">
-        <input type="text" class="input-block-level" placeholder="Mobile">
-        <input type="password" class="input-block-level" placeholder="Password">
+      <form class="form-signin" method="POST" action="http://localhost:8080/BuzzGuardian/SignUp">
+        <h2 class="form-signin-heading">Buzz Guardian Signup</h2>
+        <input type="text" class="input-block-level" placeholder="First Name" name="firstName">
+        <input type="text" class="input-block-level" placeholder="Last Name" name="lastName">
+        <input type="text" class="input-block-level" placeholder="GT Email Address" name="emailID">
+        <input type="text" class="input-block-level" placeholder="Mobile (xxxxxxxxxx)" name="mobileNo">
+        <input type="password" class="input-block-level" placeholder="Password" name="passwd">
         <!--<label class="checkbox">
           <input type="checkbox" value="remember-me"> Remember me
         </label>-->

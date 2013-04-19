@@ -13,8 +13,12 @@
     <servlet-name>SMS</servlet-name>
     <servlet-class>guardian.SMS</servlet-class>
   </servlet>
-   <servlet>
+  <servlet>
     <servlet-name>EmergencyMap</servlet-name>
     <servlet-class>guardian.EmergencyMap</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>SignUp</servlet-name>
+    <servlet-class>guardian.SignUp</servlet-class>
   </servlet>
 </web-app>
