@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,9 +39,9 @@ public class GoogleVoice {
 	 * @return Unread SMS messages in the form of a List of SMSObjects 
 	 * @throws DocumentException
 	 */
-	public static List<SMSObject> getUnreadSMS() throws DocumentException{
+	public static List<SMSData> getUnreadSMS() throws DocumentException{
 
-		List<SMSObject> smsList = new ArrayList<SMSObject>();
+		List<SMSData> smsList = new ArrayList<SMSData>();
 
 		Collection<SMSThread> smsthreads = null;
 		
@@ -97,9 +98,9 @@ public class GoogleVoice {
 				System.out.println("Number: " + s.getFrom().getNumber());
 				System.out.println("Text: " + s.getContent());
 				System.out.println("Time: " + s.getDateTime().toString());
-
-				smsList.add(new SMSObject(s.getFrom().getNumber(), s
-						.getContent(), s.getDateTime().toString()));
+				Timestamp ts = new Timestamp(s.getDateTime().getTime());
+				System.out.println("test printout: " + ts);
+				smsList.add(new SMSData(s.getFrom().getNumber(), s.getContent(), ts));
 				break;
 			}
 		}
@@ -109,9 +110,9 @@ public class GoogleVoice {
 
 	public static void main(String[] args) {
 		try {
-			List<SMSObject> smsList = GoogleVoice.getUnreadSMS();
+			List<SMSData> smsList = GoogleVoice.getUnreadSMS();
 			System.out.println("Number of unread messages: " + smsList.size());
-			for(SMSObject sms : smsList){
+			for(SMSData sms : smsList){
 				System.out.println(sms.getFromNumber() + "\n" + sms.getMessage() + "\n" + sms.getTimestamp());
 			}
 		} catch (Exception e) {

@@ -29,27 +29,7 @@ public class SignUp extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-			        /*
-	        PreparedStatement pst = connection.prepareStatement(sql);
-	        pst.setString(1, user_name);
-	        pst.setString(2, email_Id);
-	        pst.setString(3, gender);
-	        pst.setString(4, age);
-	        pst.setString(5, mobile_no);
-	        pst.setString(6, password);
-	        pst.setString(7, new Date().toString());
-
-	        int numRowsChanged = pst.executeUpdate();
-	        if (numRowsChanged < 7) {
-	            out.println("error createing : " + numRowsChanged);
-	            return;
-	        }
-	        out.println("Account created succesfully with the user name "
-	                + user_name);
-	        pst.close();
-	        */
-	    
+		// TODO Auto-generated method stub	    
 	}
 
 	/**
@@ -57,8 +37,7 @@ public class SignUp extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		System.out.println("in doPost!");
-		String connectionURL = "jdbc:mysql://localhost:3306/buzz";
+		String connectionURL = "jdbc:mysql://143.215.115.25:3306/buzz";
 		Statement stmt;
 	    Connection connection = null;
 	    ResultSet rs;
@@ -70,34 +49,30 @@ public class SignUp extends HttpServlet {
 	    String mobileNo = request.getParameter("mobileNo");
 	    String passwd = request.getParameter("passwd");
 	    
-
-	    int mobNo = 0;
 	    try {
-	    	if (mobileNo != null && !mobileNo.isEmpty()){
-	    		mobNo = Integer.parseInt(mobileNo);
-	    	}
-	    } catch (NumberFormatException e) {
-	    	System.out.println(e);
-	    }
-	    try {
-	    	
-	    	System.out.println("Iam here!");
 	        Class.forName("com.mysql.jdbc.Driver");
 	        connection = DriverManager.getConnection(connectionURL, "buzz",
 	                "guardian");
-	        String sql = "insert into test values (?,?)";
+	        String sql = "insert into userinfo (MobileNo, FirstName, LastName, EmailID, Passwd) values (?,?,?,?,?)";
 	        PreparedStatement pst = connection.prepareStatement(sql);
-	        pst.setString(1, firstName);
-	        pst.setInt(2, mobNo);
+	        pst.setString(1, mobileNo);
+	        pst.setString(2, firstName);
+	        pst.setString(3, lastName);
+	        pst.setString(4, emailID);
+	        pst.setString(5, passwd);
 	        int numRowsChanged = pst.executeUpdate();
 	        System.out.println("Number of Rows updated = " + numRowsChanged);
 	        pst.close();
-	        /*
-	        while (rs.next()) {
-	        	System.out.println(rs.getString(1) + "\t " + rs.getString(2));
-	        }
-			*/
 	        connection.close();
+	        out.println("<html>");
+	        out.println("<head>");
+	        out.println("<title>Buzz Guardian</title>");
+	        out.println("</head>");
+	        out.println("<body>");
+	        out.println("<h3>Registration Successful!</h3>");
+	        out.println("<h4>Welcome "+ firstName + " " + lastName + " </h4>");
+	        out.println("<a href=http://143.215.115.25:8080/BuzzGuardian/welcome.html > Go to Main Page</a>");
+	        out.println("</body>");
 
 		} catch (Exception e) {
 	        out.println(e);
