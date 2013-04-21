@@ -9,10 +9,13 @@ public class SMSData {
 	
 	private String fromNumber; //number of user who sent the panic request
 	private String message;
-	private Timestamp timestamp;
+	private Timestamp timestamp;	
 	
 	private RequestType requestType; //SEND_ALERT, CANCEL_ALERT or TRACK
-	private State state; // state of the object - PENDING, PROCESSING or TRACKING 
+	private State state; // state of the object - PENDING, PROCESSING or TRACKING
+	
+	private Double latitude;
+	private Double longitude;
 	
 	public SMSData(String fromNumber, String message, Timestamp timestamp) {
 		super();
@@ -21,6 +24,8 @@ public class SMSData {
 		this.timestamp = timestamp;
 		this.requestType = RequestType.SEND_ALERT;
 		this.state = State.PENDING;
+		this.latitude = 0.0;
+		this.longitude = 0.0;
 	}
 	
 	public SMSData(String fromNumber, String message, Timestamp timestamp,
@@ -31,6 +36,8 @@ public class SMSData {
 		this.timestamp = timestamp;
 		this.requestType = requestType;
 		this.state = State.PENDING;
+		this.latitude = 0.0;
+		this.longitude = 0.0;
 	}
 	
 	public SMSData(String fromNumber, String message, Timestamp timestamp,
@@ -41,6 +48,32 @@ public class SMSData {
 		this.timestamp = timestamp;
 		this.requestType = requestType;
 		this.state = state;
+		this.latitude = 0.0;
+		this.longitude = 0.0;
+	}
+	
+	public SMSData(String fromNumber, String message, Timestamp timestamp,
+			RequestType requestType, State state, Double latitude, Double longitude) {
+		super();
+		this.fromNumber = fromNumber;
+		this.message = message;
+		this.timestamp = timestamp;
+		this.requestType = requestType;
+		this.state = state;
+		this.latitude = latitude;
+		this.longitude = longitude;
+	}
+	
+	public SMSData(String fromNumber, String message, Timestamp timestamp,
+			RequestType requestType, Double latitude, Double longitude) {
+		super();
+		this.fromNumber = fromNumber;
+		this.message = message;
+		this.timestamp = timestamp;
+		this.requestType = requestType;
+		this.state = State.PENDING;
+		this.latitude = latitude;
+		this.longitude = longitude;
 	}
 	
 	public String getFromNumber() {
@@ -72,5 +105,11 @@ public class SMSData {
 	}
 	public void setState(State state) {
 		this.state = state;
+	}
+	public Double getLatitude() {
+		return latitude;
+	}
+	public Double getLongitude() {
+		return longitude;
 	}
 }

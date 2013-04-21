@@ -3,6 +3,7 @@ package guardian;
 /**
  * Wrapper object which contains a Runnable task and id which corresponds to the SMS which the task is processing
  */
+// Shouldn't WaitingThread extend Thread?
 public class WaitingThread {
 
 	String id;

@@ -7,7 +7,7 @@ import java.util.Map;
  * Implementation of the Pending Queue which contain the panic messages during their timeout 
  */
 public class ProcessingQueue implements SMSTransactionQueue{
-	public static final int PENDING_TIMEOUT = 30000;
+	public static final int PENDING_TIMEOUT = 35000;
 	public static final int TRACKING_TIMEOUT = 1800000;
 	public static final ThreadMap THREAD_MAP = new ThreadMap();
 	
@@ -50,6 +50,11 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						return;
 					}
 					/* Sandeep - If the waiting thread has timed out then move SMSData from PENDING to PROCESSED */
+					LogToDB log = new LogToDB();
+					log.logToSMSLog (smsData);
+					
+					/* Send SMS to the Police with the userInfo(MobileNo, FirstName, LastName, EmailID) and Location derived from SMSData */
+					UserInfo userInfo = log.queryUserInfo(smsData);
 				}
 			});
 			task.start();
@@ -85,6 +90,7 @@ public class ProcessingQueue implements SMSTransactionQueue{
 			queue.put(data.getFromNumber(), data);
 		}
 	}
+	
 	
 	/* --------------------------------------- TESTING --------------------------------------- */
 	

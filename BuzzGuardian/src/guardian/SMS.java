@@ -28,10 +28,7 @@ public class SMS extends HttpServlet {
 	 */
 	public void init(ServletConfig config) throws ServletException {
 		// TODO Auto-generated method stub
-		// Run the timertask run() method here in a loop. So the servlet will forever be stuck in the init() method.
-		while(true){
-			;
-		}		
+		// Run the timertask run() method here in a loop. So the servlet will forever be stuck in the init() method.				
 	}
 
 	/**

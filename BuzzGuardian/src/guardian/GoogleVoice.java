@@ -56,7 +56,7 @@ public class GoogleVoice {
 		for (SMSThread t : smsThreads) {
 			Collection<SMS> sms = t.getAllSMS();
 			size += sms.size();
-			// System.out.println( "Thread Messages: " + sms.size() );
+			//System.out.println( "Thread Messages: " + sms.size() );
 		}
 
 		System.out.println("Current Messages: " + size);
@@ -64,7 +64,7 @@ public class GoogleVoice {
 		int readCount;
 		File fname = new File("readCount.txt");
 		if (!fname.exists()) {
-			System.out.println("Initializing !!!");
+			// System.out.println("Initializing !!!");
 			readCount = 0;
 		} else {
 			Scanner sc = null;
@@ -89,8 +89,6 @@ public class GoogleVoice {
 		writer.println(size);
 		writer.close();
 
-		
-
 		return _getUnreadSMS(readCount, smsThreads);
 	}
 	
@@ -100,9 +98,9 @@ public class GoogleVoice {
 		for (SMSThread t : smsThreads) {
 			Collection<SMS> sms = t.getAllSMS();
 			for (SMS s : sms) {
-				//System.out.println("Number: " + s.getFrom().getNumber());
-				//System.out.println("Text: " + s.getContent());
-				//System.out.println("Time: " + s.getDateTime().toString());
+				if(kt >= readCount){
+					return smsList;
+				}
 				Timestamp ts = new Timestamp(s.getDateTime().getTime());
 				smsList.add(new SMSData(s.getFrom().getNumber(), s.getContent(), ts));
 				kt++;
@@ -114,6 +112,7 @@ public class GoogleVoice {
 		return smsList;
 	}
 
+	/*
 	public static void main(String[] args) {
 		try {
 			List<SMSData> smsList = GoogleVoice.getUnreadSMS();
@@ -125,4 +124,5 @@ public class GoogleVoice {
 			System.err.println(e.getMessage());
 		}
 	}
+	*/
 }
