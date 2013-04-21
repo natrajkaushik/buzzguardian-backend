@@ -34,17 +34,41 @@ public class GoogleVoice {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
-	 * @return Unread SMS messages in the form of a List of SMSObjects 
+	 * @return Unread SMS messages in the form of a List of SMSObjects
 	 * @throws DocumentException
 	 */
-	public static List<SMSData> getUnreadSMS() throws DocumentException{
-
+	public static List<SMSData> getUnreadSMS() throws DocumentException {
 		List<SMSData> smsList = new ArrayList<SMSData>();
+		int readCount = getUnreadSMSCount();
+		Collection<SMSThread> smsThreads = getSMSThreads();
 
+		int count = 0;
+		for (SMSThread t : smsThreads) {
+			Collection<SMS> sms = t.getAllSMS();
+			for (SMS s : sms) {
+				if (count >= readCount) {
+					return smsList;
+				}
+				Timestamp ts = new Timestamp(s.getDateTime().getTime());
+				smsList.add(new SMSData(s.getFrom().getNumber(),
+						s.getContent(), ts));
+				count++;
+				if (count >= readCount) {
+					return smsList;
+				}
+			}
+		}
+		return smsList;
+	}
+	
+	/**
+	 * @return collection of SMSThreads
+	 */
+	private static Collection<SMSThread> getSMSThreads() {
 		Collection<SMSThread> smsThreads = null;
-		
+
 		try {
 			smsThreads = voice.getSMSThreads();
 		} catch (IOException e) {
@@ -52,11 +76,20 @@ public class GoogleVoice {
 			e.printStackTrace();
 		}
 
+		return smsThreads;
+	}
+
+	/**
+	 * @return number of unread SMS messages
+	 */
+	private static int getUnreadSMSCount() {
+		Collection<SMSThread> smsThreads = getSMSThreads();
+		
 		int size = 0;
 		for (SMSThread t : smsThreads) {
 			Collection<SMS> sms = t.getAllSMS();
 			size += sms.size();
-			//System.out.println( "Thread Messages: " + sms.size() );
+			// System.out.println( "Thread Messages: " + sms.size() );
 		}
 
 		System.out.println("Current Messages: " + size);
@@ -75,7 +108,7 @@ public class GoogleVoice {
 				e.printStackTrace();
 			}
 			readCount = size - sc.nextInt();
-			System.out.println("Read Count  = " +readCount);
+			System.out.println("Read Count  = " + readCount);
 			sc.close();
 		}
 
@@ -89,54 +122,29 @@ public class GoogleVoice {
 		writer.println(size);
 		writer.close();
 
-		return _getUnreadSMS(readCount, smsThreads);
+		return readCount;
 	}
-	
-	private static List<SMSData> _getUnreadSMS(int readCount, Collection<SMSThread> smsThreads){
-		List<SMSData> smsList = new ArrayList<SMSData>();
-		int kt = 0;
-		for (SMSThread t : smsThreads) {
-			Collection<SMS> sms = t.getAllSMS();
-			for (SMS s : sms) {
-				if(kt >= readCount){
-					return smsList;
-				}
-				Timestamp ts = new Timestamp(s.getDateTime().getTime());
-				smsList.add(new SMSData(s.getFrom().getNumber(), s.getContent(), ts));
-				kt++;
-				if(kt >= readCount){
-					return smsList;
-				}
-			}
-		}
-		return smsList;
-	}
-	
+
 	/**
 	 * sends an SMS containing a specified text to a number
 	 * @param number
 	 * @param text
 	 */
-	public static void sendSMS(String number, String text){
-			try {
-				voice.sendSMS(number, text);
-			} catch (IOException e) {
-				System.err.println("Unable to send SMS to [" + number + "]");
-				System.err.println(e.getMessage());
-			}	
-	}
-
-	/*
-	public static void main(String[] args) {
+	public static void sendSMS(String number, String text) {
 		try {
-			List<SMSData> smsList = GoogleVoice.getUnreadSMS();
-			System.out.println("Number of unread messages: " + smsList.size());
-			for(SMSData sms : smsList){
-				System.out.println(sms.getFromNumber() + "\n" + sms.getMessage() + "\n" + sms.getTimestamp());
-			}
-		} catch (Exception e) {
+			voice.sendSMS(number, text);
+		} catch (IOException e) {
+			System.err.println("Unable to send SMS to [" + number + "]");
 			System.err.println(e.getMessage());
 		}
 	}
-	*/
+
+	/*
+	 * public static void main(String[] args) { try { List<SMSData> smsList =
+	 * GoogleVoice.getUnreadSMS();
+	 * System.out.println("Number of unread messages: " + smsList.size());
+	 * for(SMSData sms : smsList){ System.out.println(sms.getFromNumber() + "\n"
+	 * + sms.getMessage() + "\n" + sms.getTimestamp()); } } catch (Exception e)
+	 * { System.err.println(e.getMessage()); } }
+	 */
 }
