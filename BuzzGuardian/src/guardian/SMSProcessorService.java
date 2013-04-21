@@ -1,10 +1,5 @@
 package guardian;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,20 +40,20 @@ public class SMSProcessorService implements Runnable{
 	private void parseSMS (SMSData sms) {
 		String eachSMS[] = sms.getMessage().split(" ");
 		String request = eachSMS[3];
-		Double latitude = Double.parseDouble(eachSMS[6]);
-		Double longitude = Double.parseDouble(eachSMS[8]);
+		double latitude = Double.parseDouble(eachSMS[6]);
+		double longitude = Double.parseDouble(eachSMS[8]);
 		switch (request) {
 			case "HELP": sendAlert(sms, latitude, longitude);
 						 break;
 			case "CANCEL": cancelAlert(sms, latitude, longitude);
 						   break;
-			case "TRACK": trackPhone(sms, latitude, longitude);
+			case "TRACKING": trackPhone(sms, latitude, longitude);
 						  break;
 			default: break;
 		}
 	}
 	
-	private void sendAlert (SMSData sms, Double latitude, Double longitude) {
+	private void sendAlert (SMSData sms, double latitude, double longitude) {
 		SMSData newSMS = new SMSData(sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.SEND_ALERT, latitude, longitude);
 		// log SMS in the Database - SMSLog Table
 		LogToDB log = new LogToDB();
@@ -68,7 +63,7 @@ public class SMSProcessorService implements Runnable{
 		pendingQueue.addSMS(newSMS);
 	}
 	
-	private void cancelAlert(SMSData sms, Double latitude, Double longitude) {
+	private void cancelAlert(SMSData sms, double latitude, double longitude) {
 		SMSData newSMS = new SMSData (sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.CANCEL_ALERT, State.TRACKING, latitude, longitude);
 		// log SMS in the Database - SMSLog Table
 		LogToDB log = new LogToDB();
@@ -78,7 +73,7 @@ public class SMSProcessorService implements Runnable{
 		pendingQueue.removeSMS(newSMS.getFromNumber());
 	}
 
-	private void trackPhone(SMSData sms, Double latitude, Double longitude) {
+	private void trackPhone(SMSData sms, double latitude, double longitude) {
 		SMSData newSMS = new SMSData (sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.TRACK, State.TRACKING, latitude, longitude);
 		// log SMS in the Database - TrackingSMS Table
 		LogToDB log = new LogToDB();

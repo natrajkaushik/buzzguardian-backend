@@ -68,7 +68,6 @@ public class LogToDB {
 		        info.lastName = rs.getString(3);
 		        info.emailID = rs.getString(4);
 	        }
-	        System.out.println("Last Name: " + info.lastName);
 	        connection.close();
 	        return info;
 	    } catch (Exception e) {

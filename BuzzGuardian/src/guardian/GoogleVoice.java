@@ -102,7 +102,13 @@ public class GoogleVoice {
 					return smsList;
 				}
 				Timestamp ts = new Timestamp(s.getDateTime().getTime());
-				smsList.add(new SMSData(s.getFrom().getNumber(), s.getContent(), ts));
+				if (s.getFrom().getNumber().equals(Constants.BUZZ_GUARDIAN_NUMBER)) { 
+					readCount--;
+					continue;				
+				} else {
+					smsList.add(new SMSData(s.getFrom().getNumber(), s.getContent(), ts));
+				}
+				
 				kt++;
 				if(kt >= readCount){
 					return smsList;
@@ -120,6 +126,7 @@ public class GoogleVoice {
 	public static void sendSMS(String number, String text){
 			try {
 				voice.sendSMS(number, text);
+				System.out.println("Sent SMS to Police!");
 			} catch (IOException e) {
 				System.err.println("Unable to send SMS to [" + number + "]");
 				System.err.println(e.getMessage());

@@ -14,8 +14,8 @@ public class SMSData {
 	private RequestType requestType; //SEND_ALERT, CANCEL_ALERT or TRACK
 	private State state; // state of the object - PENDING, PROCESSING or TRACKING
 	
-	private Double latitude;
-	private Double longitude;
+	private double latitude;
+	private double longitude;
 	
 	public SMSData(String fromNumber, String message, Timestamp timestamp) {
 		super();
@@ -53,7 +53,7 @@ public class SMSData {
 	}
 	
 	public SMSData(String fromNumber, String message, Timestamp timestamp,
-			RequestType requestType, State state, Double latitude, Double longitude) {
+			RequestType requestType, State state, double latitude, double longitude) {
 		super();
 		this.fromNumber = fromNumber;
 		this.message = message;
@@ -65,7 +65,7 @@ public class SMSData {
 	}
 	
 	public SMSData(String fromNumber, String message, Timestamp timestamp,
-			RequestType requestType, Double latitude, Double longitude) {
+			RequestType requestType, double latitude, double longitude) {
 		super();
 		this.fromNumber = fromNumber;
 		this.message = message;

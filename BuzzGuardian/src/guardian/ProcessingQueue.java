@@ -58,6 +58,15 @@ public class ProcessingQueue implements SMSTransactionQueue{
 					UserInfo userInfo = new UserInfo();
 					userInfo = log.queryUserInfo(smsData);
 					System.out.println("FirstName: " + userInfo.firstName);
+					System.out.println("LastName: " + userInfo.lastName);
+					System.out.println("MobileNo: " + userInfo.mobileNo);
+					System.out.println("EmailID: " + userInfo.emailID);
+					double lat = Math.round(smsData.getLatitude() * 10000.0 ) / 10000.0;
+					double lon = Math.round(smsData.getLongitude() * 10000.0 ) / 10000.0;
+					String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
+					String policeNumber = Constants.POLICE_NUMBER;
+					GoogleVoice.sendSMS(policeNumber, textToPolice);
+					
 				}
 			});
 			task.start();
