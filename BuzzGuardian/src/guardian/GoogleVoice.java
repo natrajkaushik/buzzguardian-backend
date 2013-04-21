@@ -111,6 +111,20 @@ public class GoogleVoice {
 		}
 		return smsList;
 	}
+	
+	/**
+	 * sends an SMS containing a specified text to a number
+	 * @param number
+	 * @param text
+	 */
+	public static void sendSMS(String number, String text){
+			try {
+				voice.sendSMS(number, text);
+			} catch (IOException e) {
+				System.err.println("Unable to send SMS to [" + number + "]");
+				System.err.println(e.getMessage());
+			}	
+	}
 
 	/*
 	public static void main(String[] args) {
