@@ -43,17 +43,17 @@ public class GoogleVoice {
 
 		List<SMSData> smsList = new ArrayList<SMSData>();
 
-		Collection<SMSThread> smsthreads = null;
+		Collection<SMSThread> smsThreads = null;
 		
 		try {
-			smsthreads = voice.getSMSThreads();
+			smsThreads = voice.getSMSThreads();
 		} catch (IOException e) {
 			System.err.println("ERROR GETTING SMS THREADS");
 			e.printStackTrace();
 		}
 
 		int size = 0;
-		for (SMSThread t : smsthreads) {
+		for (SMSThread t : smsThreads) {
 			Collection<SMS> sms = t.getAllSMS();
 			size += sms.size();
 			// System.out.println( "Thread Messages: " + sms.size() );
@@ -75,6 +75,7 @@ public class GoogleVoice {
 				e.printStackTrace();
 			}
 			readCount = size - sc.nextInt();
+			System.out.println("Read Count  = " +readCount);
 			sc.close();
 		}
 
@@ -88,23 +89,28 @@ public class GoogleVoice {
 		writer.println(size);
 		writer.close();
 
+		
+
+		return _getUnreadSMS(readCount, smsThreads);
+	}
+	
+	private static List<SMSData> _getUnreadSMS(int readCount, Collection<SMSThread> smsThreads){
+		List<SMSData> smsList = new ArrayList<SMSData>();
 		int kt = 0;
-		for (SMSThread t : smsthreads) {
-			if (kt++ >= readCount) {
-				break;
-			}
+		for (SMSThread t : smsThreads) {
 			Collection<SMS> sms = t.getAllSMS();
 			for (SMS s : sms) {
-				System.out.println("Number: " + s.getFrom().getNumber());
-				System.out.println("Text: " + s.getContent());
-				System.out.println("Time: " + s.getDateTime().toString());
+				//System.out.println("Number: " + s.getFrom().getNumber());
+				//System.out.println("Text: " + s.getContent());
+				//System.out.println("Time: " + s.getDateTime().toString());
 				Timestamp ts = new Timestamp(s.getDateTime().getTime());
-				System.out.println("test printout: " + ts);
 				smsList.add(new SMSData(s.getFrom().getNumber(), s.getContent(), ts));
-				break;
+				kt++;
+				if(kt >= readCount){
+					return smsList;
+				}
 			}
 		}
-
 		return smsList;
 	}
 

@@ -9,10 +9,13 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
-  <servlet>
+    <servlet>
     <servlet-name>SMS</servlet-name>
     <servlet-class>guardian.SMS</servlet-class>
   </servlet>
+  <listener>
+    <listener-class>guardian.BuzzGuardianConfig</listener-class>
+  </listener>
   <servlet>
     <servlet-name>EmergencyMap</servlet-name>
     <servlet-class>guardian.EmergencyMap</servlet-class>
@@ -20,5 +23,5 @@
   <servlet>
     <servlet-name>SignUp</servlet-name>
     <servlet-class>guardian.SignUp</servlet-class>
-  </servlet>
+  </servlet>  
 </web-app>
