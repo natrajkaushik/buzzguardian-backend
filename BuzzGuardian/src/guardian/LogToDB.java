@@ -54,15 +54,21 @@ public class LogToDB {
 	
 	public UserInfo queryUserInfo (SMSData sms) {
 		Connection connection = null;
-	    UserInfo info = null;
+	    UserInfo info = new UserInfo();
 	    try {
 	    	Class.forName("com.mysql.jdbc.Driver");
 	        connection = DriverManager.getConnection(connectionURL, "buzz",
 	                "guardian");
 			Statement stmt = connection.createStatement();			
-	        String sql = "select MobileNo, FirstName, LastName, EmailID from userinfo where MobileNo = " + sms.getFromNumber() ;
+	        String sql = "select MobileNo, FirstName, LastName, EmailID from userinfo where MobileNo = '" + sms.getFromNumber() + "'" ;
 	        ResultSet rs = stmt.executeQuery(sql);
-	        info = new UserInfo(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4));
+	        while (rs.next()) {
+		        info.mobileNo = rs.getString(1);
+		        info.firstName = rs.getString(2);
+		        info.lastName = rs.getString(3);
+		        info.emailID = rs.getString(4);
+	        }
+	        System.out.println("Last Name: " + info.lastName);
 	        connection.close();
 	        return info;
 	    } catch (Exception e) {

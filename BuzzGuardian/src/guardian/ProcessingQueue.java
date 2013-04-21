@@ -51,10 +51,13 @@ public class ProcessingQueue implements SMSTransactionQueue{
 					}
 					/* Sandeep - If the waiting thread has timed out then move SMSData from PENDING to PROCESSED */
 					LogToDB log = new LogToDB();
+					smsData.setState(guardian.State.PROCESSED);
 					log.logToSMSLog (smsData);
 					
 					/* Send SMS to the Police with the userInfo(MobileNo, FirstName, LastName, EmailID) and Location derived from SMSData */
-					UserInfo userInfo = log.queryUserInfo(smsData);
+					UserInfo userInfo = new UserInfo();
+					userInfo = log.queryUserInfo(smsData);
+					System.out.println("FirstName: " + userInfo.firstName);
 				}
 			});
 			task.start();
