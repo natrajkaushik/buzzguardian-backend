@@ -21,15 +21,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class GetAddress {
+	
+  public static double lat, lon;
+	
+  public GetAddress (double lat, double lon) {
+	  this.lat = lat;
+	  this.lon = lon;
+  }
+  
+  public String getAddressFromLatLang () throws IOException{
 
-  public static final void main (String[] argv) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException {
-
-    String address;
+    String address = "Latitude: " + lat + ", Longitude: " + lon;
     URL url = null;
 
     // prepare a URL to the geocoder
     try {
-    	url = new URL("http://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&sensor=false");
+    	url = new URL("http://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + "," + lon + "&sensor=false");
     } catch (MalformedURLException e)  {
     	e.printStackTrace();
     }
@@ -51,21 +58,21 @@ public class GetAddress {
         	sb.append(line + "\n");
         }
         br.close();
-        //System.out.println(sb);
         
         try {
         	JSONObject object = new JSONObject(sb.toString());
 			JSONArray results = object.getJSONArray("results");
-			System.out.println("Size of Results = " + results.length());
 			
 			String formattedAddress = results.getJSONObject(0).getJSONArray("address_components").getJSONObject(0).getString("short_name");
 			formattedAddress = formattedAddress+ " " + results.getJSONObject(0).getJSONArray("address_components").getJSONObject(1).getString("short_name");
-			System.out.println(formattedAddress);			
+			return formattedAddress;
+			
         } catch (Exception e) {
         	e.printStackTrace();
         }
     } catch (Exception e) {
     	e.printStackTrace();
     }
-}
+    return address;    
+  }
 }

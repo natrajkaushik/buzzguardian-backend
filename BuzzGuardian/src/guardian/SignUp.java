@@ -37,7 +37,7 @@ public class SignUp extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		String connectionURL = "jdbc:mysql://143.215.115.25:3306/buzz";
+		String connectionURL = "jdbc:mysql://localhost:3306/buzz";
 		Statement stmt;
 	    Connection connection = null;
 	    ResultSet rs;
@@ -71,7 +71,7 @@ public class SignUp extends HttpServlet {
 	        out.println("<body>");
 	        out.println("<h3>Registration Successful!</h3>");
 	        out.println("<h4>Welcome "+ firstName + " " + lastName + " </h4>");
-	        out.println("<a href=http://143.215.115.25:8080/BuzzGuardian/welcome.html > Go to Main Page</a>");
+	        out.println("<a href=http://localhost:8080/BuzzGuardian/welcome.html > Go to Main Page</a>");
 	        out.println("</body>");
 
 		} catch (Exception e) {

@@ -1,5 +1,6 @@
 package guardian;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,7 +68,15 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						System.out.println("EmailID: " + userInfo.emailID);
 						double lat = Math.round(smsData.getLatitude() * 10000.0 ) / 10000.0;
 						double lon = Math.round(smsData.getLongitude() * 10000.0 ) / 10000.0;
-						String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
+						guardian.GetAddress ga = new GetAddress(smsData.getLatitude(),smsData.getLongitude());
+						String address = null;
+						try {
+							address = ga.getAddressFromLatLang();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						// String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
+						String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at " + address + ". MobileNo: " + userInfo.mobileNo;
 						String policeNumber = Constants.POLICE_NUMBER;
 						GoogleVoice.sendSMS(policeNumber, textToPolice);
 						
@@ -122,8 +131,10 @@ public class ProcessingQueue implements SMSTransactionQueue{
 	public synchronized SMSData removeSMS(String fromNumber) {
 		if(isPresent(fromNumber)){
 			// interrupt the waiting thread
-			WaitingThread task = THREAD_MAP.getWaitingThread(fromNumber+queueType.toString());
-			task.getTask().interrupt();
+			if (THREAD_MAP.contains(fromNumber+queueType.toString())) {
+				WaitingThread task = THREAD_MAP.getWaitingThread(fromNumber+queueType.toString());
+				task.getTask().interrupt();
+			}
 			
 			return queue.remove(fromNumber);
 		}
