@@ -1,6 +1,8 @@
 package guardian;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class SMSProcessorService implements Runnable{
@@ -24,10 +26,18 @@ public class SMSProcessorService implements Runnable{
 			List<SMSData> smsList = GoogleVoice.getUnreadSMS();
 			System.out.println("Number of unread messages: " + smsList.size());
 			
+			Collections.sort(smsList, new Comparator<SMSData>() {
+
+				@Override
+				public int compare(SMSData o1, SMSData o2) {
+					return (int)(o1.getTimestamp().getTime() - o2.getTimestamp().getTime());
+				}
+			});
+			
 			for(SMSData sms : smsList){
 				System.out.println(sms.getFromNumber() + "\n" + sms.getMessage() + "\n" + sms.getTimestamp());
 				
-				parseSMS(sms);				
+				parseSMS(sms);	
 			}
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -40,10 +50,10 @@ public class SMSProcessorService implements Runnable{
 	private void parseSMS (SMSData sms) {
 		String eachSMS[] = sms.getMessage().split(" ");
 		String request = eachSMS[3];
-		double latitude = Double.parseDouble(eachSMS[6]);
-		double longitude = Double.parseDouble(eachSMS[8]);
+		double latitude = Double.parseDouble(eachSMS[5]);
+		double longitude = Double.parseDouble(eachSMS[7]);
 		switch (request) {
-			case "HELP": sendAlert(sms, latitude, longitude);
+			case "EMERGENCY": sendAlert(sms, latitude, longitude);
 						 break;
 			case "CANCEL": cancelAlert(sms, latitude, longitude);
 						   break;
@@ -55,31 +65,39 @@ public class SMSProcessorService implements Runnable{
 	
 	private void sendAlert (SMSData sms, double latitude, double longitude) {
 		SMSData newSMS = new SMSData(sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.SEND_ALERT, latitude, longitude);
-		// log SMS in the Database - SMSLog Table
-		LogToDB log = new LogToDB();
-		log.logToSMSLog (newSMS);
+				
+		// Add to Pending Queue to begin a new thread that waits for Cancel Request.
+		if (pendingQueue.addSMS(newSMS)) {
+			// log SMS in the Database - SMSLog Table
+			LogToDB log = new LogToDB();
+			log.logToSMSLog (newSMS);
+		}
 		
-		// Add to Pending Queue to begin a new thread that waits for Cancel Request
-		pendingQueue.addSMS(newSMS);
+		// Add to Tracing Queue to begin a new thread that waits for 30mins while the phone is being tracked.
+		trackingQueue.addSMS(newSMS);		
 	}
 	
 	private void cancelAlert(SMSData sms, double latitude, double longitude) {
-		SMSData newSMS = new SMSData (sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.CANCEL_ALERT, State.TRACKING, latitude, longitude);
+		SMSData newSMS = new SMSData (sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.CANCEL_ALERT, State.PROCESSED, latitude, longitude);
+				
+		// Remove from Pending Queue to send interrupt to the pending thread and cancel the request.
+		pendingQueue.removeSMS(newSMS.getFromNumber());
+		
+		// Remove from Tracking Queue to send interrupt to the pending thread and cancel the request.
+		trackingQueue.removeSMS(newSMS.getFromNumber());
+		
 		// log SMS in the Database - SMSLog Table
 		LogToDB log = new LogToDB();
 		log.logToSMSLog (newSMS);
-		
-		// Remove from Pending Queue to send interrupt to the pending thread and cancel the request.
-		pendingQueue.removeSMS(newSMS.getFromNumber());
 	}
 
 	private void trackPhone(SMSData sms, double latitude, double longitude) {
 		SMSData newSMS = new SMSData (sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.TRACK, State.TRACKING, latitude, longitude);
-		// log SMS in the Database - TrackingSMS Table
-		LogToDB log = new LogToDB();
-		log.logToTrackingSMS (newSMS);
-		
-		// Add to Tracking Queue to keep track of the phone.
-		trackingQueue.addSMS(newSMS);
+				
+		// Add to Tracking Queue to keep track of the phone and log SMS in the Database - TrackingSMS Table
+		if (trackingQueue.updateSMS(newSMS)) {
+			LogToDB log = new LogToDB();
+			log.logToTrackingSMS (newSMS);
+		}
 	}
 }

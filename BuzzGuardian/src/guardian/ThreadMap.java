@@ -15,7 +15,7 @@ public class ThreadMap {
 	}
 	
 	/**
-	 * @param id: fromNumber
+	 * @param id: fromNumber+requestType.toString()
 	 * @return true is ThreadMap contains a WaitingThread for the given SMSData object
 	 */
 	public synchronized boolean contains(String id){

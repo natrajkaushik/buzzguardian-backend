@@ -15,7 +15,7 @@ public interface SMSTransactionQueue {
 	 * Add an SMSData to synchronized queue
 	 * @param data: SMSData object to add
 	 */
-	public void addSMS(SMSData data); 
+	public boolean addSMS(SMSData data); 
 	
 	/**
 	 * @param fromNumber
@@ -27,5 +27,5 @@ public interface SMSTransactionQueue {
 	 * update an SMSData object already in queue
 	 * @param data: new SMSData object
 	 */
-	public void updateSMS(SMSData data);
+	public boolean updateSMS(SMSData data);
 }

@@ -9,6 +9,8 @@ import java.util.Map;
 public class ProcessingQueue implements SMSTransactionQueue{
 	public static final int PENDING_TIMEOUT = 35000;
 	public static final int TRACKING_TIMEOUT = 1800000;
+	public static final int USER_TIMEOUT = 3600000;
+	public static final String CLEANUP = "CLEANUP";
 	public static final ThreadMap THREAD_MAP = new ThreadMap();
 	
 	private Map<String, SMSData> queue;
@@ -33,46 +35,83 @@ public class ProcessingQueue implements SMSTransactionQueue{
 	 * Add an SMSData to synchronized queue
 	 * @param data: SMSData object to add
 	 */
-	public synchronized void addSMS(final SMSData smsData){
+	public synchronized boolean addSMS(final SMSData smsData){
 		// if the queue does not already contain the number from which the SMS is originating
 		if(!isPresent(smsData.getFromNumber())){
 			queue.put(smsData.getFromNumber(), smsData);
 			
 			// start a waiting thread to wait for timeout
-			WaitingThread task = new WaitingThread(smsData.getFromNumber(), new Thread() {
+			WaitingThread task1 = new WaitingThread(smsData.getFromNumber()+queueType.toString(), new Thread() {
 				
 				@Override
 				public void run() {
 					try {
 						Thread.sleep(timeout);
 					} catch (InterruptedException e) {
-						THREAD_MAP.removeWaitingThread(smsData.getFromNumber());
+						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+queueType.toString());
 						return;
 					}
-					/* Sandeep - If the waiting thread has timed out then move SMSData from PENDING to PROCESSED */
-					LogToDB log = new LogToDB();
-					smsData.setState(guardian.State.PROCESSED);
-					log.logToSMSLog (smsData);
 					
-					/* Send SMS to the Police with the userInfo(MobileNo, FirstName, LastName, EmailID) and Location derived from SMSData */
-					UserInfo userInfo = new UserInfo();
-					userInfo = log.queryUserInfo(smsData);
-					System.out.println("FirstName: " + userInfo.firstName);
-					System.out.println("LastName: " + userInfo.lastName);
-					System.out.println("MobileNo: " + userInfo.mobileNo);
-					System.out.println("EmailID: " + userInfo.emailID);
-					double lat = Math.round(smsData.getLatitude() * 10000.0 ) / 10000.0;
-					double lon = Math.round(smsData.getLongitude() * 10000.0 ) / 10000.0;
-					String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
-					String policeNumber = Constants.POLICE_NUMBER;
-					GoogleVoice.sendSMS(policeNumber, textToPolice);
+					if (queueType.equals(QueueType.PENDING)) {
+						/* Sandeep - If the waiting thread has timed out then move SMSData from PENDING to PROCESSED */
+						LogToDB log = new LogToDB();
+						smsData.setState(guardian.State.PROCESSED);
+						log.logToSMSLog (smsData);
+						
+						/* Send SMS to the Police with the userInfo(MobileNo, FirstName, LastName, EmailID) and Location derived from SMSData */
+						UserInfo userInfo = new UserInfo();
+						userInfo = log.queryUserInfo(smsData);
+						System.out.println("FirstName: " + userInfo.firstName);
+						System.out.println("LastName: " + userInfo.lastName);
+						System.out.println("MobileNo: " + userInfo.mobileNo);
+						System.out.println("EmailID: " + userInfo.emailID);
+						double lat = Math.round(smsData.getLatitude() * 10000.0 ) / 10000.0;
+						double lon = Math.round(smsData.getLongitude() * 10000.0 ) / 10000.0;
+						String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
+						String policeNumber = Constants.POLICE_NUMBER;
+						GoogleVoice.sendSMS(policeNumber, textToPolice);
+						
+						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+queueType.toString());
+						return;
+					} else {
+						queue.remove(smsData.getFromNumber());
+						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+queueType.toString());
+						return;
+					}
 					
 				}
 			});
-			task.start();
+			task1.start();
 			
 			//track the waiting thread through the THREAD_MAP
-			THREAD_MAP.addWaitingThread(task);
+			THREAD_MAP.addWaitingThread(task1);
+			
+			if (queueType.equals(queueType.PENDING)) {
+				WaitingThread task2 = new WaitingThread(smsData.getFromNumber()+CLEANUP, new Thread() {
+					
+					@Override
+					public void run() {
+						try {
+							Thread.sleep(USER_TIMEOUT);
+						} catch (InterruptedException e) {
+							THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+CLEANUP);
+							return;
+						}
+						
+						queue.remove(smsData.getFromNumber());
+						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+CLEANUP);
+						return;
+					}
+				});
+				task2.start();
+				
+				//track the waiting thread through the THREAD_MAP
+				THREAD_MAP.addWaitingThread(task2);
+			}
+			
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -83,7 +122,7 @@ public class ProcessingQueue implements SMSTransactionQueue{
 	public synchronized SMSData removeSMS(String fromNumber) {
 		if(isPresent(fromNumber)){
 			// interrupt the waiting thread
-			WaitingThread task = THREAD_MAP.getWaitingThread(fromNumber);
+			WaitingThread task = THREAD_MAP.getWaitingThread(fromNumber+queueType.toString());
 			task.getTask().interrupt();
 			
 			return queue.remove(fromNumber);
@@ -94,13 +133,20 @@ public class ProcessingQueue implements SMSTransactionQueue{
 	}
 
 	/**
-	 * update an SMSData object already in queue
+	 * update an SMSData object already in queue and return true
 	 * @param data: new SMSData object
 	 */
-	public synchronized void updateSMS(SMSData data) {
+	public synchronized boolean updateSMS(SMSData data) {
 		if(isPresent(data.getFromNumber())){
 			queue.put(data.getFromNumber(), data);
-		}
+			return true;
+		} else {
+			return false;
+		}		
+	}
+	
+	public synchronized void clearQueue(String fromNumber) {
+		
 	}
 	
 	
