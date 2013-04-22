@@ -39,7 +39,7 @@ public class PoliceContactHelper {
 	}
 	
 	public static String getPoliceNumber(double latitude, double longitude){
-		return insideGeorgiaTech(latitude, longitude) ? "" : "";
+		return insideGeorgiaTech(latitude, longitude) ? Constants.POLICE_NUMBER_WITHIN : Constants.POLICE_NUMBER_WITHOUT;
 	}
 	
 	public static void main(String[] args) {

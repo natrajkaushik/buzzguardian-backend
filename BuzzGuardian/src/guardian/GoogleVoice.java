@@ -51,7 +51,7 @@ public class GoogleVoice {
 				if (count >= readCount) {
 					return smsList;
 				}
-				Timestamp ts = new Timestamp(s.getDateTime().getTime());
+				Timestamp ts = new Timestamp(s.getDateTime().getTime());				
 				
 				if (s.getFrom().getNumber().equals(Constants.BUZZ_GUARDIAN_NUMBER)) { 
 					readCount--;

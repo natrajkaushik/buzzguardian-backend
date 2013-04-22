@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
 
 public class LogToDB {
 	private String connectionURL = "jdbc:mysql://localhost:3306/buzz";
@@ -74,5 +75,27 @@ public class LogToDB {
 	    	System.out.println(e);
 	    }
 	    return info;
+	}
+	
+	public void logToStats (long smsTime, long policeTime, String requestType) {		
+	    Connection connection = null;
+	    Timestamp smsTs = new Timestamp(smsTime);
+        Timestamp policeTs = new Timestamp(policeTime);
+	    
+	    try {
+	    	Class.forName("com.mysql.jdbc.Driver");
+	        connection = DriverManager.getConnection(connectionURL, "buzz",
+	                "guardian");
+	        String sql = "insert into stats (InTimestamp, OutTimestamp, RequestType, TimeTaken) values (?,?,?,?)";
+	        PreparedStatement pst = connection.prepareStatement(sql);	        
+	        pst.setTimestamp(1, smsTs);
+	        pst.setTimestamp(2, policeTs);
+	        pst.setString(3, requestType);
+	        pst.setInt(4, (int)(policeTime-smsTime)/(1000));
+	        int numRowsChanged = pst.executeUpdate();
+	        connection.close();
+	    } catch (Exception e) {
+	    	System.out.println(e);
+	    }
 	}
 }

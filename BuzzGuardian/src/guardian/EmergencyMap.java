@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,9 +20,20 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet(description = "Returns Latest Coordinates of the user", urlPatterns = { "/EmergencyMap" })
 public class EmergencyMap extends HttpServlet {
+	
+	private static Timestamp latestTimestamp = null;
+	
 	private static final long serialVersionUID = 1L;
        
+	/**
+	 * @see Servlet#init(ServletConfig)
+	 */
+	public void init(ServletConfig config) throws ServletException {
+		// TODO Auto-generated method stub		
+	}
+	
     /**
+     * 
      * @see HttpServlet#HttpServlet()
      */
     public EmergencyMap() {
@@ -35,9 +47,11 @@ public class EmergencyMap extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		Timestamp ts = null;
+		
 		String connectionURL = "jdbc:mysql://localhost:3306/buzz";
 		Connection connection = null;
+		response.setContentType("text/plain");
+		PrintWriter out = response.getWriter();
 		try {
 	    	Class.forName("com.mysql.jdbc.Driver");
 	        connection = DriverManager.getConnection(connectionURL, "buzz",
@@ -45,16 +59,29 @@ public class EmergencyMap extends HttpServlet {
 	        Statement stmt = connection.createStatement();			
 	        String sql = "select TimeStamp from trackingsms order by ID desc LIMIT 1" ;
 	        ResultSet rs = stmt.executeQuery(sql);
-	        while (rs.next()) {
-		           ts = rs.getTimestamp(1);
+	        try {
+		        while (rs.next()) {
+		        	latestTimestamp = rs.getTimestamp(1);
+		        }
+	        } catch (Exception e) {
+	        	e.printStackTrace();
+	        }
+	        
+	        out.println(latestTimestamp.toString());
+	        
+	        sql = "select Latitude, Longitude from trackingsms where Timestamp >= '"+ latestTimestamp + "' order by ID asc" ;
+	        rs = stmt.executeQuery(sql);
+	        try {
+		        while (rs.next()) {
+		        	out.println(rs.getDouble(1) + " " + rs.getDouble(2));
+		        }
+	        } catch (Exception e) {
+	        	e.printStackTrace();
 	        }
 	        connection.close();
 	    } catch (Exception e) {
 	    	System.out.println(e);
-	    }
-		response.setContentType("text/plain");
-		PrintWriter out = response.getWriter();
-		out.println("Latest TimeStamp = " + ts.toString());
+	    }		
 	}
 
 	/**

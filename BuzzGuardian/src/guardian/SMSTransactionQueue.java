@@ -27,5 +27,6 @@ public interface SMSTransactionQueue {
 	 * update an SMSData object already in queue
 	 * @param data: new SMSData object
 	 */
-	public boolean updateSMS(SMSData data);
+	public boolean updateSMS(SMSData data);	
+	
 }

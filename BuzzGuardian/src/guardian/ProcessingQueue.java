@@ -50,6 +50,11 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						Thread.sleep(timeout);
 					} catch (InterruptedException e) {
 						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+queueType.toString());
+						if (THREAD_MAP.contains(smsData.getFromNumber()+CLEANUP)) {
+							WaitingThread task = THREAD_MAP.getWaitingThread(smsData.getFromNumber()+CLEANUP);
+							task.getTask().interrupt();
+						}
+						Thread.currentThread().interrupt();
 						return;
 					}
 					
@@ -77,10 +82,20 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						}
 						// String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
 						String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at " + address + ". MobileNo: " + userInfo.mobileNo;
-						String policeNumber = Constants.POLICE_NUMBER;
+						String policeNumber = PoliceContactHelper.getPoliceNumber(smsData.getLatitude(), smsData.getLongitude());
+						System.out.println("Police Number = " + policeNumber);
 						GoogleVoice.sendSMS(policeNumber, textToPolice);
+						long smsTime = smsData.getTimestamp().getTime();
+						long policeTime = System.currentTimeMillis();
+						System.out.println("SMS Time = " + smsTime);
+						System.out.println("Current Time = " + policeTime);
+						System.out.println("Time difference = " + (policeTime - smsTime)/(1000));
+						log.logToStats(smsTime, policeTime, smsData.getRequestType().toString());						
 						
 						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+queueType.toString());
+						
+						// For Testing purposes: clear all queues and threads related to this SMS
+						//SMSProcessorService.
 						return;
 					} else {
 						queue.remove(smsData.getFromNumber());
@@ -101,9 +116,10 @@ public class ProcessingQueue implements SMSTransactionQueue{
 					@Override
 					public void run() {
 						try {
-							Thread.sleep(USER_TIMEOUT);
+								Thread.sleep(USER_TIMEOUT);
 						} catch (InterruptedException e) {
 							THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+CLEANUP);
+							Thread.currentThread().interrupt();
 							return;
 						}
 						
@@ -156,9 +172,6 @@ public class ProcessingQueue implements SMSTransactionQueue{
 		}		
 	}
 	
-	public synchronized void clearQueue(String fromNumber) {
-		
-	}
 	
 	
 	/* --------------------------------------- TESTING --------------------------------------- */
