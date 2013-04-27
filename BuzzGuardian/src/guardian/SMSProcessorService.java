@@ -23,8 +23,11 @@ public class SMSProcessorService implements Runnable{
 	public void run() {
 		// Read unread SMS using GoogleVoice into smsList.
 		try {
+			long startTime = System.currentTimeMillis();;			
 			List<SMSData> smsList = GoogleVoice.getUnreadSMS();
+			long midTime = (System.currentTimeMillis() - startTime);
 			System.out.println("Number of unread messages: " + smsList.size());
+			System.out.println("Time taken to read the SMS: " + midTime);
 			
 			Collections.sort(smsList, new Comparator<SMSData>() {
 
@@ -38,6 +41,8 @@ public class SMSProcessorService implements Runnable{
 				System.out.println(sms.getFromNumber() + "\n" + sms.getMessage() + "\n" + sms.getTimestamp());
 				
 				parseSMS(sms);	
+				
+				System.out.println("Time to Parse each unread SMS = " + (System.currentTimeMillis() - startTime));
 			}
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -65,16 +70,17 @@ public class SMSProcessorService implements Runnable{
 	
 	private void sendAlert (SMSData sms, double latitude, double longitude) {
 		SMSData newSMS = new SMSData(sms.getFromNumber(), sms.getMessage(), sms.getTimestamp(), RequestType.SEND_ALERT, latitude, longitude);
-				
+		
+		// log SMS in the Database - SMSLog Table
+		LogToDB log = new LogToDB();
+		log.logToSMSLog (newSMS);
+		
 		// Add to Pending Queue to begin a new thread that waits for Cancel Request.
 		if (pendingQueue.addSMS(newSMS)) {
-			// log SMS in the Database - SMSLog Table
-			LogToDB log = new LogToDB();
-			log.logToSMSLog (newSMS);
-		}
+			// Add to Tracing Queue to begin a new thread that waits for 30mins while the phone is being tracked.
+			trackingQueue.addSMS(newSMS);
+		}	
 		
-		// Add to Tracing Queue to begin a new thread that waits for 30mins while the phone is being tracked.
-		trackingQueue.addSMS(newSMS);		
 	}
 	
 	private void cancelAlert(SMSData sms, double latitude, double longitude) {
@@ -85,6 +91,7 @@ public class SMSProcessorService implements Runnable{
 		
 		// Remove from Tracking Queue to send interrupt to the pending thread and cancel the request.
 		trackingQueue.removeSMS(newSMS.getFromNumber());
+				
 		
 		// log SMS in the Database - SMSLog Table
 		LogToDB log = new LogToDB();

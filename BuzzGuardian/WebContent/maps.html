@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" >   <meta name="description" content="">
     <meta name="author" content="">
     <meta charset="utf-8">
     <style>
@@ -20,13 +19,14 @@
     <script src="http://code.jquery.com/jquery.min.js"></script>
 
     <script>
-    var lastUpdate = '0'; // You need to decide what the server should return
-    //  when you load the map the first time.
+    var lastUpdate = '0';
+
+    var allMarkers = [];
 
     function autoUpdate() {
       $.ajax({
         type: "GET",
-        url: "/get_data?timestamp=" + lastUpdate,
+        url: "/BuzzGuardian/EmergencyMap",
         dataType: 'json',
         success: function(jsonData) {
 
@@ -52,6 +52,25 @@
 
             $.each(locations, addMarker);
 
+            for (var i=0; i < allMarkers.length; i++) {
+
+              if (i == 0) {
+                allMarkers[i].setIcon(start)
+              }
+
+              else if (i == allMarkers.length - 1) {
+                allMarkers[i].setIcon(finish)
+              }
+
+              else {
+
+                allMarkers[i].setIcon(path)
+              }
+
+            }
+
+
+
           }
           // 4. Relaunch the autoUpdate() function in 5 seconds.
           setTimeout(autoUpdate, 5000);
@@ -60,9 +79,11 @@
     }
 
     var map;
-    var image;
+    var start = './static/img/start.png';
+    var finish = './static/img/finish.png';
+    var path = './static/img/path.png';
+
     function initialize() {
-      image = './static/img/crimescene.png';
       var gatech = new google.maps.LatLng(33.77658,-84.38993)
       var mapOptions = {
         zoom: 15,
@@ -80,8 +101,9 @@
       marker = new google.maps.Marker({
         position: location,
         map: map,
-        icon: image
+        icon: finish
       });
+      allMarkers.push(marker);
       map.setZoom(15); // Zoom in after 1 sec
       map.panTo(location);
     }
@@ -98,7 +120,7 @@
     </script>
     <![endif]-->
     <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="./static/ico/favicon.ico">
+    <link rel="shortcut icon" href="../static/ico/favicon.ico">
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="./static/ico/apple-touch-icon-144-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="./static/ico/apple-touch-icon-114-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="./static/ico/apple-touch-icon-72-precomposed.png">

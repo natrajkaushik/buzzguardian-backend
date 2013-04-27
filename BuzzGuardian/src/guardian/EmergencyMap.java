@@ -52,6 +52,7 @@ public class EmergencyMap extends HttpServlet {
 		Connection connection = null;
 		response.setContentType("text/plain");
 		PrintWriter out = response.getWriter();
+		String jsonObject = "{";
 		try {
 	    	Class.forName("com.mysql.jdbc.Driver");
 	        connection = DriverManager.getConnection(connectionURL, "buzz",
@@ -67,14 +68,20 @@ public class EmergencyMap extends HttpServlet {
 	        	e.printStackTrace();
 	        }
 	        
-	        out.println(latestTimestamp.toString());
+	        // out.println(latestTimestamp.toString());
+	        jsonObject = jsonObject + "\"timestamp\": " + "\"" + latestTimestamp + "\",";
 	        
 	        sql = "select Latitude, Longitude from trackingsms where Timestamp >= '"+ latestTimestamp + "' order by ID asc" ;
 	        rs = stmt.executeQuery(sql);
 	        try {
+	        	jsonObject = jsonObject + "\"locations\": [";
 		        while (rs.next()) {
-		        	out.println(rs.getDouble(1) + " " + rs.getDouble(2));
+		        	// out.println(rs.getDouble(1) + " " + rs.getDouble(2));
+		        	jsonObject = jsonObject + "[" + rs.getDouble(1) + "," +rs.getDouble(2) + "],";
 		        }
+		        jsonObject = jsonObject.substring(0, jsonObject.length()-1);
+		        jsonObject = jsonObject + "]}";
+		        out.println(jsonObject);
 	        } catch (Exception e) {
 	        	e.printStackTrace();
 	        }

@@ -8,7 +8,7 @@ import java.util.Map;
  * Implementation of the Pending Queue which contain the panic messages during their timeout 
  */
 public class ProcessingQueue implements SMSTransactionQueue{
-	public static final int PENDING_TIMEOUT = 35000;
+	public static final int PENDING_TIMEOUT = 20000;
 	public static final int TRACKING_TIMEOUT = 1800000;
 	public static final int USER_TIMEOUT = 3600000;
 	public static final String CLEANUP = "CLEANUP";
@@ -59,6 +59,7 @@ public class ProcessingQueue implements SMSTransactionQueue{
 					}
 					
 					if (queueType.equals(QueueType.PENDING)) {
+						long t = System.currentTimeMillis();
 						/* Sandeep - If the waiting thread has timed out then move SMSData from PENDING to PROCESSED */
 						LogToDB log = new LogToDB();
 						smsData.setState(guardian.State.PROCESSED);
@@ -67,10 +68,10 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						/* Send SMS to the Police with the userInfo(MobileNo, FirstName, LastName, EmailID) and Location derived from SMSData */
 						UserInfo userInfo = new UserInfo();
 						userInfo = log.queryUserInfo(smsData);
-						System.out.println("FirstName: " + userInfo.firstName);
-						System.out.println("LastName: " + userInfo.lastName);
-						System.out.println("MobileNo: " + userInfo.mobileNo);
-						System.out.println("EmailID: " + userInfo.emailID);
+						// System.out.println("FirstName: " + userInfo.firstName);
+						// System.out.println("LastName: " + userInfo.lastName);
+						// System.out.println("MobileNo: " + userInfo.mobileNo);
+						// System.out.println("EmailID: " + userInfo.emailID);
 						double lat = Math.round(smsData.getLatitude() * 10000.0 ) / 10000.0;
 						double lon = Math.round(smsData.getLongitude() * 10000.0 ) / 10000.0;
 						guardian.GetAddress ga = new GetAddress(smsData.getLatitude(),smsData.getLongitude());
@@ -83,14 +84,12 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						// String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at Latitude: " + lat + " Longitude: " + lon + ". MobileNo: " + userInfo.mobileNo;
 						String textToPolice = userInfo.firstName.substring(0, 1).toUpperCase() + userInfo.firstName.substring(1) + " " + userInfo.lastName.substring(0, 1).toUpperCase() + userInfo.lastName.substring(1) + " needs HELP at " + address + ". MobileNo: " + userInfo.mobileNo;
 						String policeNumber = PoliceContactHelper.getPoliceNumber(smsData.getLatitude(), smsData.getLongitude());
-						System.out.println("Police Number = " + policeNumber);
-						GoogleVoice.sendSMS(policeNumber, textToPolice);
+						// System.out.println("Police Number = " + policeNumber);
 						long smsTime = smsData.getTimestamp().getTime();
 						long policeTime = System.currentTimeMillis();
-						System.out.println("SMS Time = " + smsTime);
-						System.out.println("Current Time = " + policeTime);
-						System.out.println("Time difference = " + (policeTime - smsTime)/(1000));
-						log.logToStats(smsTime, policeTime, smsData.getRequestType().toString());						
+						System.out.println("Time taken before sending police sms: " + (policeTime - t));
+						log.logToStats(smsTime, policeTime, smsData.getRequestType().toString());	
+						GoogleVoice.sendSMS(policeNumber, textToPolice);					
 						
 						THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+queueType.toString());
 						
@@ -118,6 +117,7 @@ public class ProcessingQueue implements SMSTransactionQueue{
 						try {
 								Thread.sleep(USER_TIMEOUT);
 						} catch (InterruptedException e) {
+							queue.remove(smsData.getFromNumber());
 							THREAD_MAP.removeWaitingThread(smsData.getFromNumber()+CLEANUP);
 							Thread.currentThread().interrupt();
 							return;
@@ -150,9 +150,10 @@ public class ProcessingQueue implements SMSTransactionQueue{
 			if (THREAD_MAP.contains(fromNumber+queueType.toString())) {
 				WaitingThread task = THREAD_MAP.getWaitingThread(fromNumber+queueType.toString());
 				task.getTask().interrupt();
-			}
-			
-			return queue.remove(fromNumber);
+				return queue.remove(fromNumber);
+			} else {
+				return null;
+			}			
 		}
 		else{
 			return null;
